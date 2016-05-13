@@ -1,0 +1,35 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="css/blir-warframe-alerts.css">
+		<script src="js/jquery-2.2.3.min.js"></script>
+		<script src="js/blir-util.js"></script>
+		<link rel="stylesheet" type="text/css" href="css/blir-util.css">
+		<script src="js/blir-discord-ajax.js"></script>
+		<script src="js/blir-discord-socket.js"></script>
+		<script src="js/blir-discord-command.js"></script>
+		<script src="js/blir-warframe-alerts.js"></script>
+		<script>
+			$(function() {
+				blir.warframe.init();
+			});
+		</script>
+	</head>
+	<body>
+		<div class="horizontal">
+			<div id="socketHeader">SOCKET</div>
+			<div id="socketPanel" class="block"></div>
+		</div>
+		<div class="horizontal">
+			<div id="ajaxHeader">AJAX</div>
+			<div id="ajaxPanel" class="block"></div>
+		</div>
+		<div class="horizontal">
+			<div id="alertsHeader">ALERTS</div>
+			<div id="alertsPanel" class="block"></div>
+		</div>
+		<div class="block horizontal">
+			<a class="twitter-timeline" href="https://twitter.com/WarframeAlerts" data-widget-id="721144743804014592">Tweets by @WarframeAlerts</a>
+			<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+		</div>
+	</body>
+</html>

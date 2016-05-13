@@ -1,0 +1,25 @@
+#socket {
+	width: 10%;
+}
+
+#ajax {
+	width: 15%;
+}
+
+#alerts {
+	width: 25%;
+}
+
+.block {
+	overflow: scroll;
+	resize: both;
+	min-width: 0;
+	min-height: 0;
+	max-width: 100%;
+}
+
+.horizontal {
+	display: inline-block;
+	vertical-align: top;
+	max-width: 20%;
+}
