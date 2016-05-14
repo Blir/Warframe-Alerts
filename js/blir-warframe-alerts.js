@@ -1,4 +1,4 @@
-// TODO - get bot token from url parm so I don't have to redact it
+// TODO consider moving help text to html markup
 
 window.blir = window.blir || {};
 blir.warframe = blir.warframe || {};
@@ -9,13 +9,16 @@ blir.warframe.channels = {};
 
 blir.warframe.alerts = [];
 
-blir.warframe.version = '1.0';
+blir.warframe.version = '2.0';
 blir.warframe.author = 'Blir';
 blir.warframe.bot_id = '171482495504613378';
-blir.warframe.token = '[TOKEN REDACTED]';
 
 blir.warframe.init = function() {
-	setInterval(blir.warframe.checkForAlerts, 5 * 60 * 1000);
+	if (!blir.warframe.token) {
+		blir.warframe.token = window.location.search.substring(1);
+	}
+	blir.discord.ajax.init();
+	setInterval(blir.warframe.checkForAlerts, 1 * 60 * 1000);
 	blir.discord.setToken(blir.warframe.token);
 	blir.discord.command.setCommandPrefix('!wfalert');
 	blir.discord.command.setBotId(blir.warframe.bot_id);
@@ -129,6 +132,10 @@ blir.discord.command.commandHandler['SUBSCRIBE'] = function(sender, args) {
 		blir.warframe.sendChat(sender.channel.id, sender.username +
 			', you are now subscribed for warframe alerts containing the text "' + containsText + '".');
 		blir.warframe.saveSubscriptions();
+		if (!sender.guild.warframeChannel) {
+			blir.warframe.sendChat(sender.channel.id, 'Warning: This server has no alert channel configured. '
+				+ 'You will not be notified unless one is configured.');
+		}
 	} else {
 		blir.warframe.sendChat(sender.channel.id, 'Invalid number of arguments.');
 	}
@@ -148,6 +155,10 @@ blir.discord.command.commandHandler['UNSUBSCRIBE'] = function(sender, args) {
 		blir.warframe.sendChat(sender.channel.id, sender.username +
 			', you are now unsubscribed for warframe alerts containing the text "' + containsText + '".');
 		blir.warframe.saveSubscriptions();
+		if (!sender.guild.warframeChannel) {
+			blir.warframe.sendChat(sender.channel.id, 'Warning: This server has no alert channel configured. '
+				+ 'Alerts will not be posted unless one is configured.');
+		}
 	} else {
 		blir.warframe.sendChat(sender.channel.id, 'Invalid number of arguments.');
 	}
@@ -160,23 +171,64 @@ blir.discord.command.commandHandler['SUBSCRIPTIONS'] = function(sender, args) {
 	var subscriptions = blir.warframe.getTenno(sender).toString();
 	blir.warframe.sendChat(sender.channel.id, sender.username +
 		', you are currently subscribed to warframe alerts containing any of the following: ' + subscriptions);
+	if (!sender.guild.warframeChannel) {
+		blir.warframe.sendChat(sender.channel.id, 'Warning: This server has no alert channel configured. '
+			+ 'You will not be notified unless one is configured.');
+	}
 }
 
 blir.discord.command.setAliases('SUBSCRIPTIONS', ['SUBS']);
 
+blir.discord.command.commandHandler['CURRENT'] = function(sender, args) {
+	var tweets = $('#twitter-widget-0').contents().find('.timeline-Tweet');
+	var now = new Date();
+	var alerts = '';
+	tweets.each(function(i, tweet) {
+		tweet = $(tweet);
+		var tweetId = tweet.attr('data-tweet-id');
+		var tweetText = tweet.find('.timeline-Tweet-text').text();
+		var duration = tweetText.match(/ - (\d+)m - /);
+		if (duration) {
+			var alertDate = new Date(tweet.find('[datetime]').attr('datetime'));
+			duration = parseInt(duration[1]) * 60 * 1000;
+			var timeLeft = alertDate.getTime() + duration - now.getTime();
+			if (timeLeft > 0) {
+				timeLeft = Math.floor(timeLeft / (60 * 1000));
+				alerts += tweetText + ' (' + timeLeft + ' minutes left)\n';
+			}
+		} else {
+			alerts += tweetText + '\n';
+		}
+	});
+	blir.warframe.sendChat(sender.channel.id, alerts);
+}
+
 blir.discord.command.commandHandler['INFO'] = function(sender, args) {
 	blir.warframe.sendChat(sender.channel.id, 'Greetings, Tenno ' + sender.username + '!\n'
 		+ 'This bot was written from scratch in JavaScript by Blir.\n'
+		+ 'GitHub Repository: https://github.com/Blir/Warframe-Alerts\n'
 		+ 'This bot complies with the Discord Bot Best Practices which you can see at https://github.com/meew0/discord-bot-best-practices\n'
 		+ 'Version: ' + blir.warframe.version);
 	blir.warframe.sendChat(sender.channel.id, 'Available commands:\n'
-		+ '    setAlertChannel [_name of channel to send alerts to_]\n'
+		+ '    setAlertChannel [_name of channel to post alerts to_]\n'
 		+ '    subscribe <_text that the alert must contain_>\n'
 		+ '    unsubscribe <_text that the alert must contain_>\n'
-		+ '    subscriptions');
+		+ '    subscriptions\n'
+		+ '    current\n'
+		+ '    changelog');
+	blir.warframe.sendChat(sender.channel.id, ''
+		+ 'This bot will post messages in chat for every alert to the designated alert channel. '
+		+ 'If the alert description contains text to which you are subscribed, '
+		+ 'you will be mentioned in the chat message.');
 }
 
 blir.discord.command.setAliases('INFO', ['HELP', '?']);
+
+blir.discord.command.commandHandler['CHANGELOG'] = function(sender, args) {
+	blir.warframe.sendChat(sender.channel.id, ''
+		+ 'v2.0: Added current and changelog commands\n'
+		+ 'v1.0: Initial version (of course)');
+}
 
 blir.warframe.saveSubscriptions = function() {
 	for (var i in blir.warframe.guilds) {

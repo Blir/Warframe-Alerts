@@ -1,6 +1,5 @@
 // DEPENDENCIES: jQuery
 
-// TODO create init function for timeouts, intervals, etc
 // TODO wrap ajax with arg parsing to warn about undefineds
 
 window.blir = window.blir || {};
@@ -15,6 +14,10 @@ blir.discord.ajax.version = '1.0';
 blir.discord.ajax.author = 'Blir';
 
 blir.discord.ajax.canSend = true;
+
+blir.discord.ajax.init = function() {
+	setInterval(blir.discord.ajax.processQueue, 250);
+}
 
 blir.discord.ajax.initDataPanel = function(elem, maxSize) {
 	blir.discord.ajax.dataPanel = blir.util.createDataPanel(elem, maxSize);
@@ -47,7 +50,7 @@ blir.discord.ajax.process = function(url, options) {
 		options.headers.Authorization = token;
 	}
 	var errorFn = options.error || function() {
-		alert('error on request ' + url);
+		console.error('error on request ' + url);
 	};
 	options.error = blir.discord.ajax.error.bind(this, errorFn, arguments);
 	$.ajax('https://discordapp.com/api/' + url, options);
@@ -81,5 +84,3 @@ blir.discord.ajax.statusHandler['502'] = function(errorFn, ajaxArgs, jqXHR, text
 blir.discord.setToken = function(token) {
 	blir.discord.ajax.token = token;
 }
-
-setInterval(blir.discord.ajax.processQueue, 250);
