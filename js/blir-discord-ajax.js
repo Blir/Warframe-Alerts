@@ -15,12 +15,17 @@ blir.discord.ajax.author = 'Blir';
 
 blir.discord.ajax.canSend = true;
 
-blir.discord.ajax.init = function() {
+blir.discord.ajax.init = function(jQuery) {
+	blir.discord.jQuery = jQuery || $;
 	setInterval(blir.discord.ajax.processQueue, 250);
 }
 
-blir.discord.ajax.initDataPanel = function(elem, maxSize) {
-	blir.discord.ajax.dataPanel = blir.util.createDataPanel(elem, maxSize);
+blir.discord.ajax.initRequestDataPanel = function(elem, maxSize) {
+	blir.discord.ajax.requestDataPanel = blir.util.createDataPanel(elem, maxSize);
+}
+
+blir.discord.ajax.initResponseDataPanel = function(elem, maxSize) {
+	blir.discord.ajax.responseDataPanel = blir.util.createDataPanel(elem, maxSize);
 }
 
 blir.discord.ajax.ajax = function() {
@@ -38,22 +43,42 @@ blir.discord.ajax.processQueue = function() {
 
 blir.discord.ajax.process = function(url, options) {
 	options = options || {};
-	var dataPanel = blir.discord.ajax.dataPanel;
-	if (dataPanel) {
-		dataPanel.addDatum(url, options);
-	} else if(!options.silent) {
-		console.log('processing ' + url);
+	if (!options.silent) {
+		var reqDataPanel = blir.discord.ajax.requestDataPanel;
+		if (reqDataPanel) {
+			reqDataPanel.addDatum(url, options);
+		} else {
+			console.log('processing ' + url);
+		}
 	}
 	var token = blir.discord.ajax.token;
 	if (token) {
 		options.headers = options.headers || {};
 		options.headers.Authorization = token;
 	}
-	var errorFn = options.error || function() {
+	var errorFn = options.error || function(errorFn, ajaxArgs, jqXHR, textStatus, errorThrown) {
 		console.error('error on request ' + url);
+		console.error('textStatus was ' + textStatus);
+		console.error('errorThrown was ' + errorThrown);
+		console.error('responseText was ' + jqXHR.responseText);
+		console.error('status was ' + jqXHR.status);
 	};
+	var successFn = options.success;
+	options.success = blir.discord.ajax.success.bind(this, url, successFn, options.silent);
 	options.error = blir.discord.ajax.error.bind(this, errorFn, arguments);
-	$.ajax('https://discordapp.com/api/' + url, options);
+	blir.discord.jQuery.ajax('https://discordapp.com/api/' + url, options);
+}
+
+blir.discord.ajax.success = function(url, successFn, silent, resp, textStatus, jqXHR) {
+	if (!silent) {
+		var respDataPanel = blir.discord.ajax.responseDataPanel;
+		if (respDataPanel) {
+			respDataPanel.addDatum(url, resp);
+		}
+	}
+	if (successFn) {
+		successFn(resp, textStatus, jqXHR);
+	}
 }
 
 blir.discord.ajax.error = function(errorFn, ajaxArgs, jqXHR, textStatus, errorThrown) {
@@ -61,7 +86,7 @@ blir.discord.ajax.error = function(errorFn, ajaxArgs, jqXHR, textStatus, errorTh
 	if (statusHandler) {
 		statusHandler.apply(this, arguments);
 	}
-	errorFn();
+	errorFn(errorFn, ajaxArgs, jqXHR, textStatus, errorThrown);
 }
 
 blir.discord.ajax.statusHandler['429'] = function(errorFn, ajaxArgs, jqXHR, textStatus, errorThrown) {
@@ -83,4 +108,13 @@ blir.discord.ajax.statusHandler['502'] = function(errorFn, ajaxArgs, jqXHR, text
 
 blir.discord.setToken = function(token) {
 	blir.discord.ajax.token = token;
+}
+
+blir.discord.sendChat = function(channelId, chat) {
+	blir.discord.ajax.ajax( 'channels/' + channelId + '/messages', {
+		method: 'POST',
+		data: {
+			content: chat
+		}
+	});
 }

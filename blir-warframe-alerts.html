@@ -10,22 +10,34 @@
 		<script src="js/blir-warframe-alerts.js"></script>
 		<script>
 			$(function() {
-				blir.warframe.init();
+				blir.warframe.init(false, '171482495504613378');
 			});
 		</script>
 	</head>
 	<body>
 		<div class="horizontal">
-			<div id="socketHeader">SOCKET</div>
+			<div id="socketHeader">Socket</div>
 			<div id="socketPanel" class="block"></div>
 		</div>
 		<div class="horizontal">
-			<div id="ajaxHeader">AJAX</div>
-			<div id="ajaxPanel" class="block"></div>
+			<div id="ajaxRequestHeader">AJAX Requests</div>
+			<div id="ajaxRequestPanel" class="block"></div>
 		</div>
 		<div class="horizontal">
-			<div id="alertsHeader">ALERTS</div>
+			<div id="ajaxResponseHeader">AJAX Responses</div>
+			<div id="ajaxResponsePanel" class="block"></div>
+		</div>
+		<div class="horizontal">
+			<div id="alertsHeader">Alerts</div>
 			<div id="alertsPanel" class="block"></div>
+		</div>
+		<div class="horizontal">
+			<div id="alertEventsHeader">Alert Events</div>
+			<div id="alertEventsPanel" class="block"></div>
+		</div>
+		<div class="horizontal">
+			<div id="socketEventsHeader">Socket Events</div>
+			<div id="socketEventsPanel" class="block"></div>
 		</div>
 		<div class="block horizontal">
 			<a class="twitter-timeline" href="https://twitter.com/WarframeAlerts" data-widget-id="721144743804014592">Tweets by @WarframeAlerts</a>
